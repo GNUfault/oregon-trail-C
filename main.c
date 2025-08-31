@@ -40,38 +40,41 @@ int main() {
 
     printf("DO YOU NEED INSTRUCTIONS (YES/NO)? ");
     fgets(response, sizeof(response), stdin);
-
-    for(int i = 0; response[i]; i++) {
+    for(int i = 0; response[i] && response[i] != '\n'; i++) {
         response[i] = toupper(response[i]);
     }
+    response[strcspn(response, "\n")] = 0;
 
     if (strncmp(response, "NO", 2) != 0) {
         print_instructions();
     }
 
-    X1 = -1;
+    X1 = 1;
     K8 = S4 = F1 = F2 = M = M9 = D3 = 0;
+    T = 700;
 
-    printf("\n\nHOW GOOD A SHOT ARE YOU WITH YOUR RIFLE?\n");
+    printf("\nHOW GOOD A SHOT ARE YOU WITH YOUR RIFLE?\n");
     printf("  (1) ACE MARKSMAN,  (2) GOOD SHOT,  (3) FAIR TO MIDDLIN'\n");
-    printf("         (4) NEED MORE PRACTICE,  (5) SHAKY KNEES\n");
+    printf("  (4) NEED MORE PRACTICE,  (5) SHAKY KNEES\n");
     printf("ENTER ONE OF THE ABOVE -- THE BETTER YOU CLAIM YOU ARE, THE\n");
     printf("FASTER YOU'LL HAVE TO BE WITH YOUR GUN TO BE SUCCESSFUL.\n");
 
     D9 = get_input_with_validation("", 1, 5);
-    if (D9 > 5) D9 = 0;
+    if (D9 > 5) D9 = 5;
 
     initial_purchases();
 
     printf("AFTER ALL YOUR PURCHASES, YOU NOW HAVE $%d DOLLARS LEFT\n", T);
-    printf("\nMONDAY MARCH 29 1847\n\n");
+    printf("MONDAY MARCH 29 1847\n");
 
     while (M < 2040) {
         set_date();
-        beginning_turn();
+        if (M >= 2040) break;
 
-        if (F < 13) {
-            dying(1); 
+        beginning_turn();
+        
+        if (F < 0) {
+            dying(1);
             return 0;
         }
 
@@ -83,6 +86,30 @@ int main() {
         riders_attack();
         select_events();
         mountains();
+
+        if (K8 == 1 || S4 == 1) {
+            T -= 20;
+            if (T < 0) {
+                printf("YOU CAN'T AFFORD A DOCTOR\n");
+                dying(4);
+                return 0;
+            }
+            printf("DOCTOR'S BILL IS $20\n");
+            K8 = S4 = 0;
+        }
+
+        if (F < 0) {
+            dying(1);
+            return 0;
+        }
+        if (M1 < 0) {
+            dying(2);
+            return 0;
+        }
+        if (B < 0) {
+            dying(3);
+            return 0;
+        }
     }
 
     final_turn();
@@ -90,34 +117,34 @@ int main() {
 }
 
 void print_instructions() {
-    printf("\n\nTHIS PROGRAM SIMULATES A TRIP OVER THE OREGON TRAIL FROM\n");
-    printf("INDEPENDENCES, MISSOURI TO OREGON CITY, OREGON IN 1847.\n");
+    printf("THIS PROGRAM SIMULATES A TRIP OVER THE OREGON TRAIL FROM\n");
+    printf("INDEPENDENCE, MISSOURI TO OREGON CITY, OREGON IN 1847.\n");
     printf("YOUR FAMILY OF FIVE WILL COVER THE 2040 MILE OREGON TRAIL\n");
-    printf("IN 5-6 MONTHS --- IF YOU MAKE IT ALIVE.\n\n");
+    printf("IN 5-6 MONTHS --- IF YOU MAKE IT ALIVE.\n");
 
     printf("YOU HAD SAVED $900 TO SPEND FOR THE TRIP, AND YOU'VE JUST\n");
-    printf("   PAID $200 FOR A WAGON.\n");
+    printf("  PAID $200 FOR A WAGON.\n");
     printf("YOU WILL NEED TO SPEND THE REST OF YOUR MONEY ON THE\n");
-    printf("   FOLLOWING ITEMS:\n\n");
+    printf("  FOLLOWING ITEMS:\n");
 
-    printf("     OXEN - YOU CAN SPEND $200-$300 ON YOUR TEAM\n");
-    printf("            THE MORE YOU SPEND, THE FASTER YOU'LL GO\n");
-    printf("               BECAUSE YOU'LL HAVE BETTER ANIMALS\n\n");
+    printf("  OXEN - YOU CAN SPEND $200-$300 ON YOUR TEAM\n");
+    printf("  THE MORE YOU SPEND, THE FASTER YOU'LL GO\n");
+    printf("  BECAUSE YOU'LL HAVE BETTER ANIMALS\n");
 
-    printf("     FOOD - THE MORE YOU HAVE, THE LESS CHANCE THERE\n");
-    printf("               IS OF GETTING SICK\n\n");
+    printf("  FOOD - THE MORE YOU HAVE, THE LESS CHANCE THERE\n");
+    printf("  IS OF GETTING SICK\n");
 
-    printf("     AMMUNITION - $1 BUYS A BELT OF 50 BULLETS\n");
-    printf("            YOU WILL NEED BULLETS FOR ATTACKS BY ANIMALS\n");
-    printf("               AND BANDITS, AND FOR HUNTING FOOD\n\n");
+    printf("  AMMUNITION - $1 BUYS A BELT OF 50 BULLETS\n");
+    printf("  YOU WILL NEED BULLETS FOR ATTACKS BY ANIMALS\n");
+    printf("  AND BANDITS, AND FOR HUNTING FOOD\n");
 
-    printf("     CLOTHING - THIS IS ESPECIALLY IMPORTANT FOR THE COLD\n");
-    printf("               WEATHER YOU WILL ENCOUNTER WHEN CROSSING\n");
-    printf("               THE MOUNTAINS\n\n");
+    printf("  CLOTHING - THIS IS ESPECIALLY IMPORTANT FOR THE COLD\n");
+    printf("  WEATHER YOU WILL ENCOUNTER WHEN CROSSING\n");
+    printf("  THE MOUNTAINS\n");
 
-    printf("     MISCELLANEOUS SUPPLIES - THIS INCLUDES MEDICINE AND\n");
-    printf("              OTHER THINGS YOU WILL NEED FOR SICKNESS\n");
-    printf("              AND EMERGENCY REPAIRS\n\n");
+    printf("  MISCELLANEOUS SUPPLIES - THIS INCLUDES MEDICINE AND\n");
+    printf("  OTHER THINGS YOU WILL NEED FOR SICKNESS\n");
+    printf("  AND EMERGENCY REPAIRS\n");
 
     printf("YOU CAN SPEND ALL YOUR MONEY BEFORE YOU START YOUR TRIP -\n");
     printf("OR YOU CAN SAVE SOME OF YOUR CASH TO SPEND AT FORTS ALONG\n");
@@ -128,52 +155,50 @@ void print_instructions() {
     printf("WHENEVER YOU HAVE TO USE YOUR TRUSTY RIFLE ALONG THE WAY,\n");
     printf("YOU WILL BE TOLD TO TYPE IN THAT WORD (ONE THAT SOUNDS LIKE A\n");
     printf("GUN SHOT). THE FASTER YOU TYPE IN THAT WORD AND HIT THE\n");
-    printf("\"RETURN\" KEY, THE BETTER LUCK YOU'LL HAVE WITH YOUR GUN.\n\n");
+    printf("\"RETURN\" KEY, THE BETTER LUCK YOU'LL HAVE WITH YOUR GUN.\n");
 
     printf("AT EACH TURN, ALL ITEMS ARE SHOWN IN DOLLAR AMOUNTS\n");
     printf("EXCEPT BULLETS\n");
-    printf("WHEN ASKED TO ENTER MONEY AMOUNTS, DON'T USE A \"$\".\n\n");
+    printf("WHEN ASKED TO ENTER MONEY AMOUNTS, DON'T USE A \"$\".\n");
 
     printf("GOOD LUCK!!!\n");
 }
 
 void initial_purchases() {
-    printf("\n\nHOW MUCH DO YOU WANT TO SPEND ON YOUR OXEN TEAM? ");
-    A = (int)get_float_input("");
-
-    while (A < 200 || A > 300) {
-        if (A < 200) {
-            printf("NOT ENOUGH\n");
-        } else {
-            printf("TOO MUCH\n");
-        }
+    float f_val;
+    
+    do {
         printf("HOW MUCH DO YOU WANT TO SPEND ON YOUR OXEN TEAM? ");
-        A = (int)get_float_input("");
-    }
+        f_val = get_float_input("");
+        A = (int)f_val;
+        if (A < 200 || A > 300) {
+            printf(A < 200 ? "NOT ENOUGH\n" : "TOO MUCH\n");
+        }
+    } while (A < 200 || A > 300);
 
-    F = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON FOOD? ");
-    while (F < 0) {
-        printf("IMPOSSIBLE\n");
-        F = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON FOOD? ");
-    }
+    do {
+        f_val = get_float_input("HOW MUCH DO YOU WANT TO SPEND ON FOOD? ");
+        F = (int)f_val;
+        if (F < 0) printf("IMPOSSIBLE\n");
+    } while (F < 0);
 
-    B = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON AMMUNITION? ");
-    while (B < 0) {
-        printf("IMPOSSIBLE\n");
-        B = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON AMMUNITION? ");
-    }
+    do {
+        f_val = get_float_input("HOW MUCH DO YOU WANT TO SPEND ON AMMUNITION? ");
+        B = (int)f_val;
+        if (B < 0) printf("IMPOSSIBLE\n");
+    } while (B < 0);
 
-    C = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON CLOTHING? ");
-    while (C < 0) {
-        printf("IMPOSSIBLE\n");
-        C = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON CLOTHING? ");
-    }
+    do {
+        f_val = get_float_input("HOW MUCH DO YOU WANT TO SPEND ON CLOTHING? ");
+        C = (int)f_val;
+        if (C < 0) printf("IMPOSSIBLE\n");
+    } while (C < 0);
 
-    M1 = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON MISCELLANEOUS SUPPLIES? ");
-    while (M1 < 0) {
-        printf("IMPOSSIBLE\n");
-        M1 = (int)get_float_input("HOW MUCH DO YOU WANT TO SPEND ON MISCELLANEOUS SUPPLIES? ");
-    }
+    do {
+        f_val = get_float_input("HOW MUCH DO YOU WANT TO SPEND ON MISCELLANEOUS SUPPLIES? ");
+        M1 = (int)f_val;
+        if (M1 < 0) printf("IMPOSSIBLE\n");
+    } while (M1 < 0);
 
     T = 700 - A - F - B - C - M1;
 
@@ -183,15 +208,15 @@ void initial_purchases() {
         return;
     }
 
-    B = 50 * B; 
+    B = 50 * B;
 }
 
 void set_date() {
     D3++;
-    printf("\nMONDAY ");
+    printf("MONDAY ");
 
     const char* dates[] = {
-        "", "APRIL 12", "APRIL 26", "MAY 10", "MAY 24", "JUNE 7",
+        "MARCH 29", "APRIL 12", "APRIL 26", "MAY 10", "MAY 24", "JUNE 7",
         "JUNE 21", "JULY 5", "JULY 19", "AUGUST 2", "AUGUST 16",
         "AUGUST 31", "SEPTEMBER 13", "SEPTEMBER 27", "OCTOBER 11",
         "OCTOBER 25", "NOVEMBER 8", "NOVEMBER 22", "DECEMBER 6", "DECEMBER 20"
@@ -204,11 +229,10 @@ void set_date() {
         return;
     }
 
-    printf("%s 1847\n\n", dates[D3]);
+    printf("%s 1847\n", dates[D3]);
 }
 
 void beginning_turn() {
-
     if (F < 0) F = 0;
     if (B < 0) B = 0;
     if (C < 0) C = 0;
@@ -220,17 +244,6 @@ void beginning_turn() {
 
     M2 = M;
 
-    if (S4 == 1 || K8 == 1) {
-        T -= 20;
-        if (T < 0) {
-            printf("YOU CAN'T AFFORD A DOCTOR\n");
-            dying(4);
-            return;
-        }
-        printf("DOCTOR'S BILL IS $20\n");
-        K8 = S4 = 0;
-    }
-
     if (M9 == 1) {
         printf("TOTAL MILEAGE IS 950\n");
         M9 = 0;
@@ -240,41 +253,33 @@ void beginning_turn() {
 
     print_supplies();
 
-    if (X1 == -1) {
+    if (X1 == 1) {
         printf("DO YOU WANT TO (1) HUNT, OR (2) CONTINUE? ");
         X = get_input_with_validation("", 1, 2);
-        if (X == 1) {
-            if (B <= 39) {
-                printf("TOUGH---YOU NEED MORE BULLETS TO GO HUNTING\n");
-                beginning_turn();
-                return;
-            }
-        }
-        X1 *= -1;
     } else {
-        X1 *= -1;
         printf("DO YOU WANT TO (1) STOP AT THE NEXT FORT, (2) HUNT, OR (3) CONTINUE? ");
         X = get_input_with_validation("", 1, 3);
-        if (X == 2) {
-            if (B <= 39) {
-                printf("TOUGH---YOU NEED MORE BULLETS TO GO HUNTING\n");
-                beginning_turn();
-                return;
-            }
+    }
+
+    if ((X == 1 && X1 == 1) || (X == 2 && X1 == -1)) { // Hunting
+        if (B <= 39) {
+            printf("TOUGH---YOU NEED MORE BULLETS TO GO HUNTING\n");
+            // Reroute to continue if hunting is not possible
+            if (X1 == 1) X = 2;
+            else X = 3;
         }
     }
 
-    switch (X) {
-        case 1:
-            if (X1 > 0) stop_at_fort();
-            else hunting();
-            break;
-        case 2:
-            if (X1 > 0) hunting();
-            else return; 
-            break;
-        case 3:
-            return; 
+    if (X1 == 1) {
+        if (X == 1) hunting();
+        else {
+            if (B <= 39) {
+                printf("TOUGH---YOU NEED MORE BULLETS TO GO HUNTING\n");
+            }
+        }
+    } else {
+        if (X == 1) stop_at_fort();
+        else if (X == 2) hunting();
     }
 }
 
@@ -362,11 +367,11 @@ void eating() {
 }
 
 void riders_attack() {
-    float attack_chance = ((M/100.0 - 4) * (M/100.0 - 4) + 72) / ((M/100.0 - 4) * (M/100.0 - 4) + 12) - 1;
+    float attack_chance = ((M / 100.0 - 4) * (M / 100.0 - 4) + 72) / ((M / 100.0 - 4) * (M / 100.0 - 4) + 12) - 1;
 
     if (random_float() * 10 > attack_chance) return;
 
-    printf("RIDERS AHEAD.  THEY ");
+    printf("RIDERS AHEAD. THEY ");
     S5 = 0;
 
     if (random_float() < 0.8) {
@@ -376,15 +381,11 @@ void riders_attack() {
     printf("LOOK HOSTILE\n");
 
     printf("TACTICS\n");
-    printf("(1) RUN  (2) ATTACK  (3) CONTINUE  (4) CIRCLE WAGONS\n");
-
-    if (random_float() > 0.2) {
-        S5 = 1 - S5;
-    }
-
+    printf("(1) RUN (2) ATTACK (3) CONTINUE (4) CIRCLE WAGONS\n");
+    
     T1 = get_input_with_validation("", 1, 4);
 
-    if (S5 == 1) { 
+    if (S5 == 1) {
         switch (T1) {
             case 1:
                 M += 15;
@@ -395,7 +396,7 @@ void riders_attack() {
                 B -= 100;
                 break;
             case 3:
-                break; 
+                break;
             case 4:
                 M -= 20;
                 break;
@@ -405,15 +406,15 @@ void riders_attack() {
         } else {
             printf("THEY DID NOT ATTACK\n");
         }
-    } else { 
+    } else {
         switch (T1) {
-            case 1: 
+            case 1:
                 M += 20;
                 M1 -= 15;
                 B -= 150;
                 A -= 40;
                 break;
-            case 2: 
+            case 2:
                 shooting_subroutine();
                 B -= B1 * 40 + 80;
                 if (B1 <= 1) {
@@ -426,7 +427,7 @@ void riders_attack() {
                     printf("YOU HAVE TO SEE OL' DOC BLANCHARD\n");
                 }
                 break;
-            case 3: 
+            case 3:
                 if (random_float() <= 0.8) {
                     B -= 150;
                     M1 -= 15;
@@ -435,7 +436,7 @@ void riders_attack() {
                     return;
                 }
                 break;
-            case 4: 
+            case 4:
                 shooting_subroutine();
                 B -= B1 * 30 + 80;
                 M -= 25;
@@ -452,61 +453,57 @@ void riders_attack() {
         }
         printf("RIDERS WERE HOSTILE--CHECK FOR LOSSES\n");
     }
-
-    if (B < 0) {
-        printf("YOU RAN OUT OF BULLETS AND GOT MASSACRED BY THE RIDERS\n");
-        dying(3);
-    }
 }
 
 void select_events() {
     int event_chances[] = {6, 11, 13, 15, 17, 22, 32, 35, 37, 42, 44, 54, 64, 69, 95};
     float R1 = random_float() * 100;
+    int event_num = 0;
 
-    D1 = 0;
     for (int i = 0; i < 15; i++) {
-        D1++;
-        if (R1 <= event_chances[i]) break;
+        if (R1 <= event_chances[i]) {
+            event_num = i + 1;
+            break;
+        }
     }
-
-    if (D1 == 16) { 
+    
+    if (event_num == 0) {
         printf("HELPFUL INDIANS SHOW YOU WHERE TO FIND MORE FOOD\n");
         F += 14;
         return;
     }
 
-    switch (D1) {
-        case 1: 
+    switch (event_num) {
+        case 1:
             printf("WAGON BREAKS DOWN--LOSE TIME AND SUPPLIES FIXING IT\n");
             M -= 15 + random_int(5);
             M1 -= 8;
             break;
-        case 2: 
+        case 2:
             printf("OX INJURES LEG---SLOWS YOU DOWN REST OF TRIP\n");
             M -= 25;
             A -= 20;
             break;
-        case 3: 
+        case 3:
             printf("BAD LUCK---YOUR DAUGHTER BROKE HER ARM\n");
             printf("YOU HAD TO STOP AND USE SUPPLIES TO MAKE A SLING\n");
             M -= 5 + random_int(4);
             M1 -= 2 + random_int(3);
             break;
-        case 4: 
+        case 4:
             printf("OX WANDERS OFF---SPEND TIME LOOKING FOR IT\n");
             M -= 17;
             break;
-        case 5: 
+        case 5:
             printf("YOUR SON GETS LOST---SPEND HALF THE DAY LOOKING FOR HIM\n");
             M -= 10;
             break;
-        case 6: 
+        case 6:
             printf("UNSAFE WATER--LOSE TIME LOOKING FOR CLEAN SPRING\n");
             M -= random_int(10) + 2;
             break;
-        case 7: 
+        case 7:
             if (M > 950) {
-
                 printf("COLD WEATHER---BRRRRRRR!--YOU ");
                 if (C > 22 + random_int(4)) {
                     printf("HAVE ENOUGH CLOTHING TO KEEP YOU WARM\n");
@@ -523,7 +520,7 @@ void select_events() {
                 M -= random_int(10) + 5;
             }
             break;
-        case 8: 
+        case 8:
             printf("BANDITS ATTACK\n");
             shooting_subroutine();
             B -= 20 * B1;
@@ -541,18 +538,18 @@ void select_events() {
                 A -= 20;
             }
             break;
-        case 9: 
+        case 9:
             printf("THERE WAS A FIRE IN YOUR WAGON--FOOD AND SUPPLIES DAMAGE!\n");
             F -= 40;
             B -= 400;
             M1 -= random_int(8) + 3;
             M -= 15;
             break;
-        case 10: 
+        case 10:
             printf("LOSE YOUR WAY IN HEAVY FOG---TIME IS LOST\n");
             M -= 10 + random_int(5);
             break;
-        case 11: 
+        case 11:
             printf("YOU KILLED A POISONOUS SNAKE AFTER IT BIT YOU\n");
             B -= 10;
             M1 -= 5;
@@ -562,13 +559,13 @@ void select_events() {
                 return;
             }
             break;
-        case 12: 
+        case 12:
             printf("WAGON GETS SWAMPED FORDING RIVER--LOSE FOOD AND CLOTHES\n");
             F -= 30;
             C -= 20;
             M -= 20 + random_int(20);
             break;
-        case 13: 
+        case 13:
             printf("WILD ANIMALS ATTACK!\n");
             shooting_subroutine();
             if (B <= 39) {
@@ -587,13 +584,13 @@ void select_events() {
             C -= B1 * 4;
             F -= B1 * 8;
             break;
-        case 14: 
+        case 14:
             printf("HAIL STORM---SUPPLIES DAMAGED\n");
             M -= 5 + random_int(10);
             B -= 200;
             M1 -= 4 + random_int(3);
             break;
-        case 15: 
+        case 15:
             if (E == 1) {
                 illness_subroutine();
             } else if (E == 3) {
@@ -612,15 +609,15 @@ void select_events() {
 void mountains() {
     if (M <= 950) return;
 
-    float mountain_event_chance = 9 - (((M/100.0 - 15) * (M/100.0 - 15) + 72) / ((M/100.0 - 15) * (M/100.0 - 15) + 12));
-
+    float mountain_event_chance = 9 - (((M / 100.0 - 15) * (M / 100.0 - 15) + 72) / ((M / 100.0 - 15) * (M / 100.0 - 15) + 12));
+    
     if (random_float() * 10 > mountain_event_chance) {
-
         printf("RUGGED MOUNTAINS\n");
-        if (random_float() <= 0.1) {
+        float r = random_float();
+        if (r <= 0.1) {
             printf("YOU GOT LOST---LOSE VALUABLE TIME TRYING TO FIND TRAIL!\n");
             M -= 60;
-        } else if (random_float() <= 0.11) {
+        } else if (r <= 0.21) {
             printf("WAGON DAMAGED!---LOSE TIME AND SUPPLIES\n");
             M1 -= 5;
             B -= 200;
@@ -631,7 +628,7 @@ void mountains() {
         }
     }
 
-    if (F1 == 0) {
+    if (F1 == 0 && M >= 950) {
         F1 = 1;
         if (random_float() < 0.8) {
             printf("BLIZZARD IN MOUNTAIN PASS--TIME AND SUPPLIES LOST\n");
@@ -662,9 +659,6 @@ void mountains() {
             }
         }
     }
-
-    if (M > 950) return;
-    M9 = 1;
 }
 
 void shooting_subroutine() {
@@ -693,21 +687,45 @@ void shooting_subroutine() {
 }
 
 void illness_subroutine() {
-    if (random_float() * 100 < 10 + 35 * (E - 1)) {
-        printf("MILD ILLNESS---MEDICINE USED\n");
-        M -= 5;
-        M1 -= 2;
-    } else if (random_float() * 100 < 100 - (40 / (4 * (E - 1)))) {
-        printf("BAD ILLNESS---MEDICINE USED\n");
-        M -= 5;
-        M1 -= 2;
-    } else {
-        printf("SERIOUS ILLNESS---\n");
-        printf("YOU MUST STOP FOR MEDICAL ATTENTION\n");
-        M1 -= 10;
-        S4 = 1;
+    float r = random_float() * 100;
+    
+    if (E == 1) { // Poorly
+        if (r < 10) {
+            printf("MILD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        } else if (r < 100) {
+            printf("BAD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        } else {
+            printf("SERIOUS ILLNESS---\n");
+            printf("YOU MUST STOP FOR MEDICAL ATTENTION\n");
+            M1 -= 10;
+            S4 = 1;
+        }
+    } else if (E == 2) { // Moderately
+        if (r < 25) {
+            printf("MILD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        } else {
+            printf("BAD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        }
+    } else { // Well
+        if (r < 50) {
+            printf("MILD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        } else {
+            printf("BAD ILLNESS---MEDICINE USED\n");
+            M -= 5;
+            M1 -= 2;
+        }
     }
-
+    
     if (M1 < 0) {
         printf("YOU RAN OUT OF MEDICAL SUPPLIES\n");
         dying(4);
@@ -722,68 +740,63 @@ void dying(int cause) {
             printf("YOU RAN OUT OF FOOD AND STARVED TO DEATH\n");
             break;
         case 2:
-            printf("YOU DIED OF INJURIES\n");
+            printf("YOU DIED OF SNAKEBITE\n");
             break;
         case 3:
             printf("YOU DIED IN COMBAT\n");
             break;
         case 4:
-            if (K8 == 1) {
-                printf("YOU DIED OF INJURIES\n");
-            } else {
-                printf("YOU DIED OF PNEUMONIA\n");
-            }
+            printf("YOU DIED OF INJURIES OR PNEUMONIA\n");
             break;
         case 5:
-
+            printf("YOUR FAMILY DIES IN THE FIRST BLIZZARD OF WINTER\n");
             break;
     }
-    }
 
-    printf("\nDUE TO YOUR UNFORTUNATE SITUATION, THERE ARE A FEW\n");
-    printf("FORMALITIES WE MUST GO THROUGH\n\n");
+    printf("DUE TO YOUR UNFORTUNATE SITUATION, THERE ARE A FEW\n");
+    printf("FORMALITIES WE MUST GO THROUGH\n");
 
     printf("WOULD YOU LIKE A MINISTER? ");
     fgets(response, sizeof(response), stdin);
-
     printf("WOULD YOU LIKE A FANCY FUNERAL? ");
     fgets(response, sizeof(response), stdin);
 
     printf("WOULD YOU LIKE US TO INFORM YOUR NEXT OF KIN? ");
     fgets(response, sizeof(response), stdin);
+    response[strcspn(response, "\n")] = 0;
 
     for (int i = 0; response[i]; i++) {
         response[i] = toupper(response[i]);
     }
 
     if (strncmp(response, "YES", 3) == 0) {
-        printf("THAT WILL BE $%d FOR THE TELEGRAPH CHARGE.\n\n", S4 * 50);
+        printf("THAT WILL BE $%d FOR THE TELEGRAPH CHARGE.\n", S4 * 50);
     } else {
-        printf("BUT YOUR AUNT SADIE IN ST. LOUIS IS REALLY WORRIED ABOUT YOU\n\n");
+        printf("BUT YOUR AUNT SADIE IN ST. LOUIS IS REALLY WORRIED ABOUT YOU\n");
     }
 
     printf("WE THANK YOU FOR THIS INFORMATION AND WE ARE SORRY YOU\n");
     printf("DIDN'T MAKE IT TO THE GREAT TERRITORY OF OREGON\n");
-    printf("BETTER LUCK NEXT TIME\n\n\n");
-    printf("                              SINCERELY\n\n");
-    printf("                 THE OREGON CITY CHAMBER OF COMMERCE\n");
+    printf("BETTER LUCK NEXT TIME\n");
+    printf("                  SINCERELY\n");
+    printf("        THE OREGON CITY CHAMBER OF COMMERCE\n");
 
     exit(0);
 }
 
 void final_turn() {
-    F9 = (2040 - M2) / (float)(M - M2);
-    F += (1 - F9) * (8 + 5 * E);
+    float F9 = (2040.0 - M2) / (M - M2);
+    F += (1.0 - F9) * (8 + 5 * E);
 
-    printf("\nYOU FINALLY ARRIVED AT OREGON CITY\n");
+    printf("YOU FINALLY ARRIVED AT OREGON CITY\n");
     printf("AFTER 2040 LONG MILES---HOORAY!!!!!\n");
-    printf("A REAL PIONEER!\n\n");
+    printf("A REAL PIONEER!\n");
 
     int days_in_final_turn = (int)(F9 * 14);
-    D3 = D3 * 14 + days_in_final_turn;
-    int day_of_week = (days_in_final_turn + 1) % 7;
+    D3 = (D3 - 1) * 14 + days_in_final_turn + 1;
 
     const char* weekdays[] = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+    int day_of_week = (D3 + 1 - 1) % 7;
     printf("%s ", weekdays[day_of_week]);
 
     if (D3 <= 124) {
@@ -803,40 +816,38 @@ void final_turn() {
     printf("\n");
     print_supplies();
 
-    printf("\n           PRESIDENT JAMES K. POLK SENDS YOU HIS\n");
-    printf("                 HEARTIEST CONGRATULATIONS\n\n");
-    printf("           AND WISHES YOU A PROSPEROUS LIFE AHEAD\n\n");
-    printf("                      AT YOUR NEW HOME\n");
+    printf("                  PRESIDENT JAMES K. POLK SENDS YOU HIS\n");
+    printf("                     HEARTIEST CONGRATULATIONS\n");
+    printf("                     AND WISHES YOU A PROSPEROUS LIFE AHEAD\n");
+    printf("                           AT YOUR NEW HOME\n");
 }
 
 void print_supplies() {
     printf("FOOD\t\tBULLETS\t\tCLOTHING\tMISC. SUPP.\tCASH\n");
-    printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", 
-           (F > 0) ? F : 0, 
-           (B > 0) ? B : 0, 
-           (C > 0) ? C : 0, 
-           (M1 > 0) ? M1 : 0, 
+    printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
+           (F > 0) ? F : 0,
+           (B > 0) ? B : 0,
+           (C > 0) ? C : 0,
+           (M1 > 0) ? M1 : 0,
            (T > 0) ? T : 0);
 }
 
 int get_input_with_validation(const char* prompt, int min, int max) {
     int value;
     char buffer[100];
+    int valid_input;
 
     do {
         if (strlen(prompt) > 0) {
             printf("%s", prompt);
         }
-        fgets(buffer, sizeof(buffer), stdin);
-        value = atoi(buffer);
-
-        if (value < min || value > max) {
-            if (strlen(prompt) == 0) {
-
-                continue;
-            }
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+            valid_input = 0;
+        } else {
+            value = atoi(buffer);
+            valid_input = (value >= min && value <= max);
         }
-    } while (value < min || value > max);
+    } while (!valid_input);
 
     return value;
 }
@@ -849,6 +860,7 @@ float get_float_input(const char* prompt) {
         printf("%s", prompt);
     }
     fgets(buffer, sizeof(buffer), stdin);
+    buffer[strcspn(buffer, "\n")] = 0;
     value = atof(buffer);
 
     return value;
@@ -859,5 +871,6 @@ float random_float() {
 }
 
 int random_int(int max) {
+    if (max <= 0) return 0;
     return rand() % max;
 }
